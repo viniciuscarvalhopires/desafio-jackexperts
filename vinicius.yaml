@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vinicius-carvalho
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vinicius-teste
+  namespace: vinicius-carvalho
+  labels:
+    app: vinicius
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vinicius
+  replicas: 10
+  template:
+    metadata:
+      labels:
+        app: vinicius
+    spec:
+      containers:
+        - image: vinicpires/vinicius-jackexperts:latest
+          name: nginx-vinicius
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: desafio-vinicius-carvalho
+  namespace: vinicius-carvalho
+spec:
+  selector:
+    app: vinicius
+  ports:
+    - port: 8081
+      targetPort: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vinicius
+  namespace: vinicius-carvalho
+
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: vinicius-carvalho.stag.jac.bsb.br
+      http:
+        paths:
+          - backend:
+              service:
+                name: desafio-vinicius-carvalho
+                port:
+                  number: 8081
+            path: /
+            pathType: Prefix
